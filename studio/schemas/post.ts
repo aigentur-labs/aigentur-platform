@@ -5,14 +5,30 @@ export default defineType({
   title: "Post",
   type: "document",
   fields: [
-    // Client (multi-tenant root)
     defineField({
-      name: "client",
-      title: "Client",
-      type: "reference",
-      to: [{ type: "client" }],
-      validation: (Rule) => Rule.required(),
-    }),
+  name: "client",
+  title: "Client",
+  type: "reference",
+  to: [{ type: "client" }],
+  validation: (Rule) => Rule.required(),
+
+  // Automatically set correct client for logged-in user
+  initialValue: async (_, context) => {
+    const email = context.currentUser?.email;
+    const client = await context.getClient().fetch(
+      `*[_type == "client" && ownerUserEmail == $email][0]._id`,
+      { email }
+    );
+    return client ? { _type: "reference", _ref: client } : undefined;
+  },
+
+  // Prevent users from changing it
+  readOnly: ({ currentUser }) => {
+    const isAdmin = currentUser?.roles?.some((r) => r.name === "administrator");
+    return !isAdmin; // only admin can modify client assignment
+  },
+}),
+
 
     // Post basics
     defineField({
