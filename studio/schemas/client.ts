@@ -61,6 +61,14 @@ export default defineType({
       type: "image",
       options: { hotspot: true },
     }),
+    
+    defineField({
+      name: "ownerUserEmail",
+      title: "Owner User Email",
+      type: "string",
+      description: "Email address of the client user who owns this tenant.",
+      validation: (Rule) => Rule.email().required(),  
+    }),
 
     // Optional settings object — useful for future custom layouts
     defineField({
