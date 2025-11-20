@@ -14,9 +14,11 @@ export default defineConfig({
   basePath: "/",
 
   plugins: [
-    deskTool(),
-    visionTool(),
-  ],
+  deskTool({
+    structure: deskStructure
+  }),
+  visionTool()
+]
 
   schema: {
     types: schemaTypes,
