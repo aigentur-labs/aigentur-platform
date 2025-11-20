@@ -18,7 +18,7 @@ export default defineConfig({
     structure: deskStructure
   }),
   visionTool()
-]
+],
 
   schema: {
     types: schemaTypes,
