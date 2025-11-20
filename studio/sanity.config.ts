@@ -6,10 +6,17 @@ import { schemaTypes } from "./schemas";
 export default defineConfig({
   name: "default",
   title: "Aigentur Studio",
+
   projectId: "laby05pv",
   dataset: "production",
+
   basePath: "/",
-  plugins: [deskTool(), visionTool()],
+
+  plugins: [
+    deskTool(),
+    visionTool(),
+  ],
+
   schema: {
     types: schemaTypes,
   },
