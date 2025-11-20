@@ -1,86 +1,62 @@
-import {StructureBuilder} from 'sanity/desk'
-import {User} from 'sanity'
+import {StructureBuilder} from "sanity/desk"
+import {User} from "sanity"
 
-export const deskStructure = (S: StructureBuilder, context: {currentUser: User}) => {
+export const deskStructure = (
+  S: StructureBuilder,
+  context: { currentUser: User }
+) => {
   const user = context.currentUser
+  const userEmail = user?.email
 
-  const isAdmin = user?.roles?.some((r) => r.name === 'administrator')
+  const isAdmin = user?.roles?.some((role) => role.name === "administrator")
 
-  // ADMIN VIEW → sees all clients
+  // ADMIN → sees all content
   if (isAdmin) {
     return S.list()
-      .title('Content')
+      .title("Content")
       .items([
-        // List all clients
+        // All clients
         S.listItem()
-          .title('Clients')
-          .child(
-            S.documentTypeList('client').child((clientId) =>
-              // When clicking a client → show filtered content
-              S.list()
-                .title('Client Content')
-                .items([
-                  S.listItem()
-                    .title('Posts')
-                    .child(
-                      S.documentList()
-                        .title('Posts')
-                        .filter('_type == "post" && client._ref == $clientId')
-                        .params({clientId})
-                    ),
-
-                  S.listItem()
-                    .title('Categories')
-                    .child(
-                      S.documentList()
-                        .title('Categories')
-                        .filter('_type == "category" && client._ref == $clientId')
-                        .params({clientId})
-                    ),
-                ])
-            )
-          ),
+          .title("Clients")
+          .child(S.documentTypeList("client")),
 
         S.divider(),
 
-        // Optional admin tools
-        S.documentTypeListItem('post'),
-        S.documentTypeListItem('category'),
-        S.documentTypeListItem('client'),
+        // Admin tools
+        S.documentTypeListItem("post").title("All Posts"),
+        S.documentTypeListItem("category").title("All Categories"),
       ])
   }
 
-  // CLIENT VIEW (not admin) → only see their own content
-  const clientRef = user?.id // We will map this to a field in the role
-
+  // CLIENT → only see own content
   return S.list()
-    .title('Content')
+    .title("Your Content")
     .items([
       S.listItem()
-        .title('Posts')
+        .title("Posts")
         .child(
           S.documentList()
-            .title('Posts')
-            .filter('_type == "post" && client._ref == $clientId')
-            .params({clientId: clientRef})
+            .title("Your Posts")
+            .filter('_type == "post" && client->ownerUserEmail == $email')
+            .params({ email: userEmail })
         ),
 
       S.listItem()
-        .title('Categories')
+        .title("Categories")
         .child(
           S.documentList()
-            .title('Categories')
-            .filter('_type == "category" && client._ref == $clientId')
-            .params({clientId: clientRef})
+            .title("Your Categories")
+            .filter('_type == "category" && client->ownerUserEmail == $email')
+            .params({ email: userEmail })
         ),
 
       S.listItem()
-        .title('Client Settings')
+        .title("Client Settings")
         .child(
-          S.editor()
-            .id('client')
-            .schemaType('client')
-            .documentId(clientRef)
+          S.documentList()
+            .title("Client Settings")
+            .filter('_type == "client" && ownerUserEmail == $email')
+            .params({ email: userEmail })
         ),
     ])
 }
