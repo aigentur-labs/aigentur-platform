@@ -5,32 +5,44 @@ export default defineType({
   title: "Post",
   type: "document",
   fields: [
+    //
+    // 🔐 CLIENT (multi-tenant isolation)
+    //
     defineField({
-  name: "client",
-  title: "Client",
-  type: "reference",
-  to: [{ type: "client" }],
-  validation: (Rule) => Rule.required(),
+      name: "client",
+      title: "Client",
+      type: "reference",
+      to: [{ type: "client" }],
+      validation: (Rule) => Rule.required(),
 
-  // Automatically set correct client for logged-in user
-  initialValue: async (_, context) => {
-    const email = context.currentUser?.email;
-    const client = await context.getClient().fetch(
-      `*[_type == "client" && ownerUserEmail == $email][0]._id`,
-      { email }
-    );
-    return client ? { _type: "reference", _ref: client } : undefined;
-  },
+      // Automatically set correct client for logged-in user
+      initialValue: async (_, context) => {
+        const email = context.currentUser?.email;
 
-  // Prevent users from changing it
-  readOnly: ({ currentUser }) => {
-    const isAdmin = currentUser?.roles?.some((r) => r.name === "administrator");
-    return !isAdmin; // only admin can modify client assignment
-  },
-}),
+        const clientId = await context
+          .getClient({ apiVersion: "2023-06-11" }) // REQUIRED FIX
+          .fetch(
+            `*[_type == "client" && ownerUserEmail == $email][0]._id`,
+            { email }
+          );
 
+        return clientId
+          ? { _type: "reference", _ref: clientId }
+          : undefined;
+      },
 
-    // Post basics
+      // Prevent regular users from modifying the client assignment
+      readOnly: ({ currentUser }) => {
+        const isAdmin = currentUser?.roles?.some(
+          (r) => r.name === "administrator"
+        );
+        return !isAdmin;
+      },
+    }),
+
+    //
+    // 📝 BASIC FIELDS
+    //
     defineField({
       name: "title",
       title: "Title",
@@ -57,7 +69,9 @@ export default defineType({
       description: "Short summary used for SEO and previews.",
     }),
 
-    // Main image
+    //
+    // 🖼 MAIN IMAGE
+    //
     defineField({
       name: "mainImage",
       title: "Main Image",
@@ -65,29 +79,35 @@ export default defineType({
       options: { hotspot: true },
     }),
 
-    // Rich text body
+    //
+    // 📄 BODY CONTENT
+    //
     defineField({
       name: "body",
       title: "Body",
       type: "array",
       of: [{ type: "block" }],
     }),
-    //category
+
+    //
+    // 🏷 CATEGORY (tenant-isolated)
+    //
     defineField({
-  name: "category",
-  title: "Category",
-  type: "reference",
-  to: [{ type: "category" }],
-  options: {
-    filter: ({ currentUser }) => ({
-      filter: "client->ownerUserEmail == $email",
-      filterParams: { email: currentUser?.email },
+      name: "category",
+      title: "Category",
+      type: "reference",
+      to: [{ type: "category" }],
+      options: {
+        filter: ({ currentUser }) => ({
+          filter: "client->ownerUserEmail == $email",
+          filterParams: { email: currentUser?.email },
+        }),
+      },
     }),
-  },
-}),
 
-
-    // Metadata
+    //
+    // 🗓 METADATA
+    //
     defineField({
       name: "publishedAt",
       title: "Published at",
@@ -101,7 +121,9 @@ export default defineType({
       description: "Optional. Can be computed automatically by n8n.",
     }),
 
-    // Status for workflow
+    //
+    // 🟢 STATUS
+    //
     defineField({
       name: "status",
       title: "Status",
@@ -116,7 +138,9 @@ export default defineType({
       initialValue: "draft",
     }),
 
-    // Optional: AIgentur tagging
+    //
+    // 🤖 SOURCE TAG
+    //
     defineField({
       name: "source",
       title: "Content Source",
@@ -131,3 +155,4 @@ export default defineType({
     }),
   ],
 });
+
