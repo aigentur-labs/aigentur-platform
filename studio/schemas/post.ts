@@ -72,14 +72,19 @@ export default defineType({
       type: "array",
       of: [{ type: "block" }],
     }),
-
-    // Single category (recommended)
+    //Category
     defineField({
-      name: "category",
-      title: "Category",
-      type: "reference",
-      to: [{ type: "category" }],
+  name: "category",
+  title: "Category",
+  type: "reference",
+  to: [{ type: "category" }],
+  options: {
+    filter: 'client->ownerUserEmail == $email',
+    filterParams: (context) => ({
+      email: context.currentUser?.email,
     }),
+  },
+}),
 
     // Metadata
     defineField({
