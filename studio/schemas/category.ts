@@ -11,6 +11,7 @@ export default defineType({
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
+
     defineField({
       name: "slug",
       title: "Slug",
@@ -19,8 +20,9 @@ export default defineType({
         source: "title",
         maxLength: 96,
       },
-      validation: (Rule) => Rule.required(),
     }),
+
+    // Attach category to a client
     defineField({
       name: "client",
       title: "Client",
