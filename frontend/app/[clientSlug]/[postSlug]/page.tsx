@@ -1,6 +1,7 @@
 import { sanityClient } from "@/lib/sanity.client";
 import { postBySlugQuery } from "@/lib/queries";
 import { PortableText } from "@portabletext/react";
+import { portableTextComponents } from "@/lib/portableTextComponents"; // ← ADD THIS
 import Image from "next/image";
 import Link from "next/link";
 
@@ -78,7 +79,10 @@ export default async function PostPage({ params }: PageProps) {
           color: "#222",
         }}
       >
-        <PortableText value={post.body} />
+        <PortableText
+          value={post.body}
+          components={portableTextComponents} // ← USE IT HERE
+        />
       </div>
     </main>
   );
